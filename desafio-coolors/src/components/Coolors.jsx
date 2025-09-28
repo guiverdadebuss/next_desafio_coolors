@@ -1,118 +1,166 @@
-/*todas as arrow functions foram substituídas por funções tradicionais (function(...) { ... }).
-
-Cada passo dentro das funções foi explicitado, com variáveis intermediárias para facilitar a leitura.
-
-O comportamento continua exatamente o mesmo, só que agora está mais didático.
-
-----------------------------------------
-APENAS O ESQUELETO DO CODIGO SEM ESTILO: 
-----------------------------------------
-*/
-
 import { useState, useEffect } from "react";
 
-// Função que gera uma cor aleatória em hexadecimal
-
+// Função que retorna uma string com uma cor aleatória em hexadecimal
 function randomHexColor() {
-    const numeroAleatorio = Math.floor(Math.random() * 16777215);
-    const hexadecimal = numeroAleatorio.toString(16);
-    const corFormatada = "#" + hexadecimal.padStart(6, "0");
-    return corFormatada;
+  return (
+    "#" +
+    Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, "0")
+  );
 }
 
-
 export default function Bytes4Coolors() {
+  const [paleta, setPaleta] = useState([
+    { hex: randomHexColor(), locked: false },
+    { hex: randomHexColor(), locked: false },
+    { hex: randomHexColor(), locked: false },
+    { hex: randomHexColor(), locked: false },
+    { hex: randomHexColor(), locked: false },
+  ]);
 
-    // Estado inicial com 5 cores aleatórias, todas desbloqueadas
-
-    const [paleta, setPaleta] = useState([
-        { hex: randomHexColor(), locked: false },
-        { hex: randomHexColor(), locked: false },
-        { hex: randomHexColor(), locked: false },
-        { hex: randomHexColor(), locked: false },
-        { hex: randomHexColor(), locked: false }
-    ]);
-
-    // Função que gera uma nova paleta, respeitando as cores bloqueadas
-
-    function gerarNovaPaleta() {
-        setPaleta(function(coresAtuais) {
-            const novaPaleta = coresAtuais.map(function(cor) {
-                if (cor.locked) {
-                    return cor; // mantém a cor bloqueada
-                } else {
-                    return { hex: randomHexColor(), locked: false }; // gera nova cor
-                }
-            });
-            return novaPaleta;
-        });
-    }
-
-    // Função que alterna o estado "locked" de uma cor específica
-
-    function toggleLock(index) {
-        setPaleta(function(coresAtuais) {
-            const novaPaleta = coresAtuais.map(function(cor, i) {
-                if (i === index) {
-                    return {
-                        hex: cor.hex,
-                        locked: !cor.locked // inverte o estado
-                    };
-                } else {
-                    return cor; // mantém as outras cores como estão
-                }
-            });
-            return novaPaleta;
-        });
-    }
-
-    // Função que copia o valor hexadecimal da cor para a área de transferência
-
-    function copiarHex(hex) {
-        navigator.clipboard.writeText(hex);
-        alert("Cor " + hex + " copiada!");
-    }
-
-    // Efeito que escuta a tecla espaço e gera nova paleta ao pressionar
-
-    useEffect(function() {
-        function handleKeyDown(e) {
-            if (e.code === "Space") {
-                e.preventDefault(); // evita scroll
-                gerarNovaPaleta();
-            }
-        }
-
-        window.addEventListener("keydown", handleKeyDown);
-
-        // Limpeza do efeito ao desmontar o componente
-
-        return function() {
-            window.removeEventListener("keydown", handleKeyDown);
-        };
-    }, []);
-
-    // Renderização do componente
-
-    return (
-        <div>
-            <h1>Bytes4Coolors</h1>
-            <div>
-                {paleta.map(function(cor, index) {
-                    return (
-                        <div key={index}>
-                            <p>{cor.hex.toUpperCase()}</p>
-                            <button onClick={function() { copiarHex(cor.hex); }}>
-                                Copiar
-                            </button>
-                            <button onClick={function() { toggleLock(index); }}>
-                                {cor.locked ? "Desbloquear" : "Bloquear"}
-                            </button>
-                        </div>
-                    );
-                })}
-            </div>
-            <button onClick={gerarNovaPaleta}>Gerar Nova Paleta</button>
-        </div>
+  // Gera nova paleta respeitando cores bloqueadas
+  function gerarNovaPaleta() {
+    setPaleta((coresAtuais) =>
+      coresAtuais.map((cor) =>
+        cor.locked ? cor : { hex: randomHexColor(), locked: false }
+      )
     );
+  }
+
+  // Alterna o estado locked de uma cor
+  function toggleLock(index) {
+    setPaleta((coresAtuais) =>
+      coresAtuais.map((cor, i) =>
+        i === index ? { ...cor, locked: !cor.locked } : cor
+      )
+    );
+  }
+
+  // Copia o código hex para a área de transferência
+  function copiarHex(hex) {
+    navigator.clipboard.writeText(hex);
+    alert(`Cor ${hex} copiada!`);
+  }
+
+  // Listener para barra de espaço gerar nova paleta
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code === "Space") {
+        e.preventDefault(); // previne scroll
+        gerarNovaPaleta();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  return (
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+      }}
+    >
+      {/* Paleta de cores ocupando a tela inteira */}
+      <div style={{ display: "flex", flex: 1 }}>
+        {paleta.map((cor, index) => (
+          <div
+            key={index}
+            style={{
+              backgroundColor: cor.hex,
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative",
+              cursor: "pointer",
+            }}
+          >
+            {/* Mostrar apenas os 6 dígitos do hex, em CAPS, preto e fonte delicada */}
+            <p
+              style={{
+                color: "#000",
+                fontSize: "2rem",
+                fontWeight: 500,
+                fontFamily: "Helvetica, Arial, sans-serif",
+                letterSpacing: "1px",
+              }}
+            >
+              {cor.hex.slice(1).toUpperCase()}
+            </p>
+
+            {/* Botões com ícones via link */}
+            <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+              <button
+                onClick={() => copiarHex(cor.hex)}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                <img
+                  src="https://cdn.jsdelivr.net/npm/feather-icons/dist/icons/copy.svg"
+                  alt="Copiar"
+                  width="24"
+                  height="24"
+                />
+              </button>
+
+              <button
+                onClick={() => toggleLock(index)}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                <img
+                  src={
+                    cor.locked
+                      ? "https://cdn.jsdelivr.net/npm/feather-icons/dist/icons/lock.svg"
+                      : "https://cdn.jsdelivr.net/npm/feather-icons/dist/icons/unlock.svg"
+                  }
+                  alt={cor.locked ? "Bloquear" : "Desbloquear"}
+                  width="24"
+                  height="24"
+                />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Botão flutuante transparente, borda e texto sempre pretos */}
+      <button
+        onClick={gerarNovaPaleta}
+        style={{
+          position: "absolute",
+          bottom: "20px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          padding: "12px 24px",
+          fontSize: "1rem",
+          borderRadius: "12px",
+          cursor: "pointer",
+          border: "2px solid #000",
+          backgroundColor: "transparent",
+          color: "#000",
+          fontWeight: "bold",
+          transition: "0.3s",
+        }}
+        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#0001")} // leve efeito no hover
+        onMouseOut={(e) =>
+          (e.currentTarget.style.backgroundColor = "transparent")
+        }
+      >
+        Gerar Nova Paleta
+      </button>
+    </div>
+  );
 }
