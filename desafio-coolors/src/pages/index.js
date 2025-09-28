@@ -1,11 +1,11 @@
 import Image from "next/image";
-
+import Coolors from "@/components/coolors"
 
 
 export default function Home() {
   return (
     <div>
-        <h1>Olá mundo</h1>
+        <Coolors />
     </div>
   );
 }
