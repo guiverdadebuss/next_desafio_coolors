@@ -1,11 +1,13 @@
-import Image from "next/image";
-import Coolors from "@/components/coolors"
+import dynamic from "next/dynamic";
 
+const Coolors = dynamic(() => import("../components/Coolors"), {
+  ssr: false,
+});
 
 export default function Home() {
   return (
     <div>
-        <Coolors />
+      <Coolors />
     </div>
   );
 }
